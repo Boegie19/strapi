@@ -43,6 +43,14 @@ module.exports = [
   },
   {
     method: 'PUT',
+    path: '/users/me',
+    handler: 'user.updateMe',
+    config: {
+      prefix: '',
+    },
+  },
+  {
+    method: 'PUT',
     path: '/users/:id',
     handler: 'user.update',
     config: {
