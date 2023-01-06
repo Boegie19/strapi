@@ -132,6 +132,104 @@ module.exports = {
   },
 
   /**
+   * Update the current authenticated user record.
+   * @return {Object}
+   */
+  async updateMe(ctx) {
+    const advancedConfigs = await strapi
+      .store({ type: 'plugin', name: 'users-permissions', key: 'advanced' })
+      .get();
+
+    const newData = _.pick(ctx.request.body, [
+      'email',
+      'username',
+      'password',
+      'confirmPassword',
+      'currentPassword',
+    ]);
+
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.notFound(`User not found`);
+    }
+    if (user.provider !== 'local') {
+      return ctx.unauthorized('Provider is not local');
+    }
+    delete newData.confirmPassword;
+
+    if (_.has(newData, 'username')) {
+      const userWithSameUsername = await strapi
+        .query('plugin::users-permissions.user')
+        .findOne({ where: { username: newData.username } });
+
+      if (userWithSameUsername && userWithSameUsername.id !== user.id) {
+        return ctx.badRequest('Username is already in use');
+      }
+    }
+
+    if (_.has(newData, 'email') && advancedConfigs.unique_email) {
+      const userWithSameEmail = await strapi
+        .query('plugin::users-permissions.user')
+        .findOne({ where: { email: newData.email.toLowerCase() } });
+
+      if (userWithSameEmail && userWithSameEmail.id !== user.id) {
+        return ctx.badRequest('Email already taken');
+      }
+      newData.email = newData.email.toLowerCase();
+    }
+
+    if (
+      _.has(newData, 'confirmPassword') ||
+      _.has(newData, 'password') ||
+      _.has(newData, 'currentPassword')
+    ) {
+      if (!_.has(newData, ['password', 'confirmPassword', 'currentPassword'])) {
+        return ctx.badRequest(
+          'password, confirmPassword and currentPassword all 3 need be given to update a password'
+        );
+      }
+      if (newData.password !== newData.confirmPassword) {
+        return ctx.badRequest('password and confirmPassword are not the same value');
+      }
+      const validPassword = await getService('user').validatePassword(
+        newData.currentPassword,
+        user.password
+      );
+      if (!validPassword) {
+        return ctx.badRequest('confirmPassword incorrect');
+      }
+    }
+    delete newData.confirmPassword;
+    delete newData.currentPassword;
+
+    if (_.has(newData, 'email') && advancedConfigs.unique_email) {
+      const userWithSameEmail = await strapi
+        .query('plugin::users-permissions.user')
+        .findOne({ where: { email: newData.email.toLowerCase() } });
+
+      if (userWithSameEmail && userWithSameEmail.id !== user.id) {
+        return ctx.badRequest('Email already taken');
+      }
+      newData.email = newData.email.toLowerCase();
+    }
+
+    const data = await getService('user').edit(user.id, newData);
+    const sanitizedUser = await sanitizeOutput(data, ctx);
+
+    if (_.has(newData, 'email') && advancedConfigs.email_confirmation) {
+      try {
+        await getService('user').sendConfirmationEmail(sanitizedUser);
+      } catch (err) {
+        return ctx.badRequest('sendConfirmationEmail failed');
+      }
+
+      return ctx.send({ user: sanitizedUser });
+    }
+
+    ctx.send(sanitizedUser);
+  },
+
+  /**
    * Retrieve user records.
    * @return {Object|Array}
    */
