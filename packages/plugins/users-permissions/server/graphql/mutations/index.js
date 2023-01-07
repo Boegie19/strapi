@@ -27,6 +27,7 @@ module.exports = (context) => {
     resetPassword: require('./auth/reset-password'),
     changePassword: require('./auth/change-password'),
     emailConfirmation: require('./auth/email-confirmation'),
+    updateUserMe: require('./crud/user/update-user-me'),
   };
 
   return nexus.extendType({
