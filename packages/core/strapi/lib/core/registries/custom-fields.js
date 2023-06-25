@@ -19,6 +19,7 @@ const ALLOWED_TYPES = [
   'text',
   'time',
   'uid',
+  'relation',
 ];
 
 const customFieldsRegistry = (strapi) => {

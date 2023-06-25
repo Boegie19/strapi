@@ -44,6 +44,7 @@ export default {
       'text',
       'time',
       'uid',
+      'relation'
     ];
 
     allTypes.forEach((type) => {

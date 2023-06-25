@@ -17,6 +17,7 @@ const ALLOWED_TYPES = [
   'text',
   'time',
   'uid',
+  'relation'
 ];
 
 const ALLOWED_ROOT_LEVEL_OPTIONS = [
