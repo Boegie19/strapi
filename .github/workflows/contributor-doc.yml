@@ -1,6 +1,9 @@
 name: Deploy contributor doc
 
 on:
+  push:
+    branches:
+      - 'develop'
     paths:
       - 'docs/**'
 
