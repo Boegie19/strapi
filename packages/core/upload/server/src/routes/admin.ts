@@ -38,7 +38,15 @@ export const routes = {
       path: '/',
       handler: 'admin-upload.upload',
       config: {
-        policies: ['admin::isAuthenticatedAdmin'],
+        policies: [
+          'admin::isAuthenticatedAdmin',
+          {
+            name: 'admin::hasPermissions',
+            config: {
+              actions: ['plugin::upload.assets.create'],
+            },
+          },
+        ],
       },
     },
     {
