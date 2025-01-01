@@ -3,6 +3,7 @@ import type { Schema } from '../schema';
 
 export interface SchemaInspector {
   getSchema(): Promise<Schema>;
+  getTables(): Promise<string[]>;
 }
 
 export default class Dialect {
@@ -17,11 +18,16 @@ export default class Dialect {
     this.client = client;
   }
 
-  configure() {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  configure(conn?: any) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async initialize(_nativeConnection?: unknown) {
     // noop
+  }
+
+  getTables() {
+    throw new Error('getTables not implemented for this dialect');
   }
 
   getSqlType(type: unknown) {
